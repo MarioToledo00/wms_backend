@@ -94,7 +94,7 @@ DATABASES = {
         'NAME': 'wms',
         'USER': 'root',
         'PASSWORD': '1234',
-        'HOST': 'LocalHost',     # o la IP del servidor de base de datos
+        'HOST': 'mariadb-dev',     # o la IP del servidor de base de datos
         'PORT': '3306',          # puerto por defecto de MySQL
     }
 }
