@@ -1,0 +1,59 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+
+# Ignore Django migrations if desired
+**/migrations/*.py
+**/migrations/*.pyc
+!*/migrations/__init__.py
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+
+# Pip environment
+*.egg-info/
+dist/
+build/
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.cache
+
+# Pytest
+.pytest_cache/
+
+# MyPy
+.mypy_cache/
+
+# Env files
+.env
+.env.*
+
+# Docker
+*.pid
+*.seed
+*.bak
+docker-compose.override.yml
