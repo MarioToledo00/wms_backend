@@ -1,58 +1,35 @@
-from datetime import datetime, timedelta
-import jwt
-import datetime
+
+
 from django.conf import settings
 from django.utils import timezone  
 import json, random
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 from .models import EmailVerified
 from users.models import RequestUser, Users
 from django.contrib.auth.hashers import make_password
-from django.core.mail import send_mail
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.contrib.auth.hashers import check_password
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from django.utils.timezone import is_naive, make_aware
-
-@csrf_exempt
-def login(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        try:
-            user = Users.objects.get(email=data['email'])
-
-        except Users.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=400)
-
-        if not check_password(data['password'], user.password):
-            return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=400)
-
-        # Generar token
-        payload = {
-            'user_id': user.id,
-            'email': user.email,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=settings.JWT_EXP_DELTA_SECONDS),
-            'iat': datetime.datetime.utcnow()
-        }
-
-        token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Login successful',
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data.update({
             'user': {
-                'email': user.email,
-                'name': user.name,
-                'access_token': token
+                'id': self.user.id,
+                'email': self.user.email,
+                'name': self.user.name,
             }
-        }, status=200)
+        })
+        return data
 
-def logout(request):
-    return HttpResponse("<h1>This is page 2</h1>")
-@csrf_exempt
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+
 def request_user(request):
     if request.method == 'POST':
         try:
@@ -135,9 +112,6 @@ def verifyUserByEmail(email):
     except Users.DoesNotExist:
         return False  
 
-
-
-@csrf_exempt
 def verify_email(request):
     if request.method == 'POST':
         try:
@@ -149,7 +123,6 @@ def verify_email(request):
                 requestUser = RequestUser.objects.get(email=email)
                 verified_email = EmailVerified.objects.get(token=token, req_id=requestUser.id)
 
-# Fechas en formato datetime con zona horaria
                 fecha_creacion = verified_email.created_at.strftime('%Y-%m-%d %H:%M:%S')
                 fecha_actual = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -252,101 +225,3 @@ def send_confirmation_email(user_email, token):
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
-@csrf_exempt 
-def create_user_by_post(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            name = data['name']
-            email = data['email']
-            password = data['pass']
-            tel = data['tel']
-
-            if verifyUserByEmail(email):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'El usuario ya existe'
-                }, status=400)
-
-            user = Users.objects.create(
-                name=name,
-                email=email,
-                password=make_password(password),
-                tel=tel,
-                rol_id=1,
-                activated_by=1,
-            )
-
-            return JsonResponse({
-                'success': True,
-                'message': 'Usuario creado correctamente',
-                'user_id': user.id
-            }, status=201)
-
-        except KeyError as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Falta el campo: {str(e)}'
-            }, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False,
-                'message': 'JSON inválido'
-            }, status=400)
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Error al crear el usuario',
-                'error': str(e)
-            }, status=500)
-
-@csrf_exempt
-def check_Auth(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            token = data['token']
-            payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-            user_id = payload['user_id']
-            user = Users.objects.get(id=user_id)
-
-            return JsonResponse({
-                'success': True,
-                'message': 'Token válido',
-                'user': {
-                    'email': user.email,
-                    'name': user.name
-                }
-            }, status=200)
-
-        except jwt.ExpiredSignatureError:
-            return JsonResponse({
-                'success': False,
-                'message': 'Token expirado'
-            }, status=401)
-        except jwt.InvalidTokenError:
-            return JsonResponse({
-                'success': False,
-                'message': 'Token inválido'
-            }, status=401)
-        except Users.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'message': 'Usuario no encontrado'
-            }, status=404)
-        except KeyError as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Falta el campo: {str(e)}'
-            }, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'success': False,
-                'message': 'JSON inválido'
-            }, status=400)
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': 'Error al verificar el token',
-                'error': str(e)
-            }, status=500)  
