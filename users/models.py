@@ -73,4 +73,3 @@ class RequestUser(models.Model):
     updated_by = models.IntegerField(null=True, blank=True)
     class Meta:
         db_table = 'request_user'
-

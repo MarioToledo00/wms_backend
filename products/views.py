@@ -1,8 +1,9 @@
 from django.http import JsonResponse
-from .models import Products,Brands,Categories
+from .models import Products,Brands,Categories,Inventory
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import F
 
 from django.utils import timezone 
 
@@ -11,7 +12,7 @@ class ProductsView(APIView):
 
     def get(self, request, action=None):
         if action == "getAllProducts":
-            return self.getAllProducts(request)
+            return self.get_inventory_with_products(request)
         elif action == "getAllBrands":
             return self.getAllBrands(request)
         elif action == "getAllCategories":
@@ -26,6 +27,32 @@ class ProductsView(APIView):
         if request.method == 'GET':
             products = Products.objects.filter(deleted_at__isnull=True).order_by('name').values('id', 'name', 'description','sku','barcode','unit','stock_min','stock_max','active','key_product','created_at','updated_at','deleted_at','updated_by','category__name','brand__name')
             return JsonResponse(list(products), safe=False)
+        
+    def get_inventory_with_products(self,request):
+        if request.method == 'GET':
+            inventory_data = (
+                Inventory.objects
+                .filter(product__deleted_at__isnull=True)  # solo productos no eliminados
+                .annotate(
+                    product_name=F('product__name'),
+                    category_name=F('product__category__name'),
+                    brand_name=F('product__brand__name'),
+                    active=F('product__active'),
+                    warehouse_name=F('warehouse_location__warehouse__name')
+                )
+                .values(
+                    'product__id',
+                    'product_name',
+                    'category_name',
+                    'brand_name',
+                    'active',
+                    'location',
+                    'stock',
+                    'warehouse_name'
+                )
+                .order_by('product_name')
+            )
+            return JsonResponse(list(inventory_data), safe=False)
     
     def getAllBrands(self,request):
         if request.method == 'GET':

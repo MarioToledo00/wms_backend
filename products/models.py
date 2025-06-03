@@ -64,3 +64,53 @@ class Products(models.Model):
         db_table = 'products'
         managed = False  
 
+
+
+
+
+
+class Warehouse(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateField(blank=True, null=True)
+    deleted_at = models.DateField(blank=True, null=True)
+    updated_by = models.IntegerField()
+
+    class Meta:
+        db_table = 'warehouses'
+
+    def __str__(self):
+        return self.name
+
+
+class WarehouseLocation(models.Model):
+    address = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateField(blank=True, null=True)
+    deleted_at = models.DateField(blank=True, null=True)
+    updated_by = models.IntegerField()
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='locations',db_column='warehouses_id')
+
+    class Meta:
+        db_table = 'warehouse_locations'
+
+    def __str__(self):
+        return self.address
+
+
+class Inventory(models.Model):
+    location = models.CharField(max_length=70, unique=True)
+    stock = models.IntegerField(default=0)
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='inventories',db_column='products_id')
+    warehouse_location = models.ForeignKey(WarehouseLocation, on_delete=models.CASCADE, related_name='inventories', db_column='warehouse_locations_id')
+
+    class Meta:
+        db_table = 'inventory'
+        unique_together = ('product', 'warehouse_location')
+        verbose_name = 'Inventory'
+        verbose_name_plural = 'Inventories'
+
+    def __str__(self):
+        return f'{self.location} - {self.product.name} - Stock: {self.stock}'
