@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'authservice',
     'products',
     'users',
+    'business',
     'rest_framework',
 ]
 
