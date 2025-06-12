@@ -11,5 +11,6 @@ urlpatterns = [
     path('auth/', include('authservice.urls')),
     path('products/', include('products.urls')),
     path('users/', include('users.urls')),
-    path('business/', include('business.urls'))
+    path('business/', include('business.urls')),
+    path('count/', include('count.urls'))
 ]

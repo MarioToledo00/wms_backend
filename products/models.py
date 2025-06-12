@@ -58,16 +58,12 @@ class Products(models.Model):
     updated_by = models.IntegerField()
     brand = models.ForeignKey(Brands, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Categories, on_delete=models.SET_NULL, null=True, blank=True)
-    
+    def __str__(self):
+        return self.name
 
     class Meta:
         db_table = 'products'
-        managed = False  
-
-
-
-
-
+        managed = False
 
 class Warehouse(models.Model):
     name = models.CharField(max_length=100)

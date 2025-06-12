@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'users',
     'business',
     'rest_framework',
+    'count'
 ]
 
 MIDDLEWARE = [
