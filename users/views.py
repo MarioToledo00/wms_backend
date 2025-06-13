@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone  
 
 class UserView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request, action=None):
         if action == "getRequests":
@@ -68,18 +68,26 @@ class UserView(APIView):
 
 
     def create_user_by_post(serlf,request): 
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
-        # if request.method == 'POST':
-        #     data = request.POST
-        #     name = data.get('name')
-        #     email = data.get('email')
-        #     password = data.get('password')
-        #     tel = data.get('tel')
+        # return JsonResponse({'error': 'Invalid request method'}, status=400)
+        if request.method == 'POST':
+            data = request.POST
+            name = data.get('name')
+            email = data.get('email')   
+            password = data.get('password')
+            tel = data.get('tel')
+            rol_id = data.get('rol_id')
 
-        #     user = create_user(name, email, password, tel)
-        #     return JsonResponse({'message': 'User created successfully', 'user_id': user.id}, status=201)
-        # else:
-        #     return JsonResponse({'error': 'Invalid request method'}, status=400)
+            user =  Users.objects.create(
+                        name=name,
+                        email=email,
+                        password=password,
+                        tel=tel,
+                        rol_id=rol_id,
+                        activated_by= 1
+                    )
+            return JsonResponse({'message': 'User created successfully', 'user_id': user.id}, status=201)
+        else:
+            return JsonResponse({'error': 'Invalid request method'}, status=400)
 
     def getRoles(self,request):
         if request.method == 'GET':

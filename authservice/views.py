@@ -45,6 +45,7 @@ def request_user(request):
                 existing_req = RequestUser.objects.get(email=data['email'])
                 if existing_req.verified is None:
                     try:
+                        
                         verified_email = EmailVerified.objects.get(req_id=existing_req.id)
                         verified_email.delete()  # Elimina el token de verificación anterior
                     except EmailVerified.DoesNotExist:
